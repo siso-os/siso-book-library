@@ -1,0 +1,8 @@
+# Payload and indexes ship as RELEASE ASSETS, never in git.
+# Git history is permanent: an 182MB file committed once is 182MB forever, and
+# a corrected copy stores both. Assets can be replaced; commits cannot.
+index/*.sqlite
+index/*.sqlite-*
+*.tar
+*.tar.zip
+*.gz
