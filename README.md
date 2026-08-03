@@ -45,12 +45,28 @@ python3 scripts/build_people_graph.py --books books.sqlite --db people.sqlite
 
 ## Getting a book
 
-A reference is an identity, not a location, so every work resolves to routes:
+A reference is an identity, not a location, so every work resolves to routes,
+cheapest-first:
 
 ```
-gid 84 → https://www.gutenberg.org/ebooks/84.txt.utf-8      (always works)
-       → byte range in a release asset: offset 10240, length 448885
+gid 84 → https://www.gutenberg.org/ebooks/84.txt.utf-8      (always works, no local data)
+       → byte range in a payload asset: gutenberg-001.tar @ offset+length
 ```
+
+The payload is published as **six release assets, 10.5 GB, all 79,071 books**,
+with `locator.sqlite` mapping every gid to `(asset, offset, length, sha256)`.
+
+```bash
+# one book out of a 1.77GB asset, without downloading the asset
+curl -r "$OFFSET-$((OFFSET+LENGTH-1))" \
+  -L https://github.com/sisodias/siso-book-library/releases/download/payload-v1/gutenberg-001.tar \
+  | gunzip
+```
+
+Each book is gzipped individually inside an uncompressed tar. The container
+stays uncompressed so offsets remain exact; compressing it would force
+decompressing everything before the target and destroy random access. Measured
+2.6x: a 448KB book transfers as ~170KB.
 
 The direct URL needs no auth and no local copy. The byte-range route exists for
 bulk: one HTTP `Range` request pulls a single book out of a multi-gigabyte
