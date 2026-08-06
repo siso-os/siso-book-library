@@ -1,0 +1,72 @@
+name: Book Library integrity
+
+on:
+  pull_request:
+    paths:
+      - "scripts/**"
+      - "index/**"
+      - "tests/**"
+      - "manifests/**"
+      - "docs/**"
+      - ".github/workflows/book-integrity.yml"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/**"
+      - "index/**"
+      - "tests/**"
+      - "manifests/**"
+      - "docs/**"
+      - ".github/workflows/book-integrity.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  offline-contracts:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Compile tracked Python
+        run: |
+          find scripts tests -name '*.py' -print0 | xargs -0 -n1 python -m py_compile
+      - name: Run offline integrity tests
+        env:
+          PYTHONPATH: scripts
+        run: python -Werror::ResourceWarning -m unittest discover -s tests -v
+      - name: Prove clean logical reproducibility through the CLI
+        env:
+          PYTHONPATH: scripts
+        run: |
+          first="$(mktemp -d)"
+          second="$(mktemp -d)"
+          python scripts/build_release.py \
+            --source-manifest manifests/fixtures/catalog-v1.json \
+            --payload-input-manifest manifests/fixtures/payload-v1.json \
+            --out-dir "$first" \
+            --built-at 2026-08-06T00:10:00Z \
+            --asset-prefix fixture \
+            --max-members 10 > "$first/summary.json"
+          python scripts/build_release.py \
+            --source-manifest manifests/fixtures/catalog-v1.json \
+            --payload-input-manifest manifests/fixtures/payload-v1.json \
+            --out-dir "$second" \
+            --built-at 2026-08-06T00:10:00Z \
+            --asset-prefix fixture \
+            --max-members 10 > "$second/summary.json"
+          python scripts/compare_release_summaries.py \
+            "$first/summary.json" "$second/summary.json"
+      - name: Reject committed generated assets
+        run: |
+          if find . -path ./.git -prune -o -type f \
+            \( -name '*.sqlite' -o -name '*.tar' -o -name '*.gz' \) -print | grep -q .; then
+            echo "Generated SQLite/tar/gzip assets must not be committed" >&2
+            exit 1
+          fi

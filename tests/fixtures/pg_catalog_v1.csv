@@ -1,0 +1,5 @@
+Text#,Type,Issued,Title,Language,Authors,Subjects,LoCC,Bookshelves,Copyright Status,Legacy Field
+1001,Text,2001-01-01,Über Ethics,en,"García Márquez, Ana, 1900-1980 [Author]; García Márquez, Ana (A. G. Márquez), 1900-1980 [Translator]",Ethics -- Essays; Biography,B52; D501,Philosophy; Essays,Public domain in the USA.,remove-me
+1002,Text,2002-02-02,Letters from Elsewhere,en,"Collective of Example City [Editor]; Doe, Alex (pseud. River), 1910-1990 [Author]",Letters; Journalism and the press,P; PN1999,Correspondence; Periodicals,Public domain in the USA.,stale-on-v2
+1003,Text,2003-03-03,Classical Fragments,grc,"Plato, 428 BCE-348 BCE [Author]",Mythology; Classical literature,PA1,Classics,Public domain in the USA.,v1-only
+1005,Sound,2005-05-05,Spoken Archive,en,Example Society [Compiler],Archives,Z1,Audio,Public domain in the USA.,non-text-retained

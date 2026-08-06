@@ -1,0 +1,121 @@
+{
+  "ledger_version": "book-library-engineering-ledger-1",
+  "date": "2026-08-06",
+  "repository": "sisodias/siso-book-library",
+  "baseline_commit": "be9ab0831b9ea8802d6898f3a3dfa8a61c63e80b",
+  "branch": "books/integrity-export-parallel-20260806",
+  "scope_paths": [
+    "scripts/**",
+    "index/**",
+    "tests/**",
+    "manifests/**",
+    "docs/**",
+    ".github/workflows/**"
+  ],
+  "findings": [
+    {
+      "id": "BL-001",
+      "severity": "high",
+      "problem": "In-place additive builds retain rows and edges absent from replacement snapshots.",
+      "decision": "Fresh validated database plus atomic replacement; per-container and full-release locator/payload pruning.",
+      "proof": "Fixture v1 to v2 removes Works 1002/1005, Legacy Field, contributor edges, payload assets, members, and containers."
+    },
+    {
+      "id": "BL-002",
+      "severity": "high",
+      "problem": "LCC comment, parser, and priority semantics disagree for letter-plus-digit codes.",
+      "decision": "Store main section, full alphabetic subclass, and numeric stem; use section for broad rules.",
+      "proof": "Tests assert D501 => D/D/501, PR6019 => P/PR/6019, QA76.73 => Q/QA/76.73."
+    },
+    {
+      "id": "BL-003",
+      "severity": "high",
+      "problem": "Queue emits duplicate Work rows across reasons/tiers.",
+      "decision": "Select minimum tier rank per Work and aggregate stable winning/all reason lists.",
+      "proof": "Builder invariant and test require COUNT(*) = COUNT(DISTINCT gid)."
+    },
+    {
+      "id": "BL-004",
+      "severity": "high",
+      "problem": "Documented compressed-member payload had no tracked pack/hash/range verifier chain.",
+      "decision": "Deterministic gzip-in-uncompressed-USTAR pack, locator rescan, exact range/member/content verification.",
+      "proof": "Fixture verifies one container and three exact members; stale assets are removed."
+    },
+    {
+      "id": "BL-005",
+      "severity": "critical",
+      "problem": "Normalized names become person keys and direct canonical matches, risking false merges and Unicode loss.",
+      "decision": "Store source attribution occurrences and export validated pg-observation-0.1 only; --apply fails closed.",
+      "proof": "Tests preserve Unicode/roles/aliases/pseudonyms and reject canonical fields/attribute identifiers."
+    },
+    {
+      "id": "BL-006",
+      "severity": "medium",
+      "problem": "Deterministic wording lacks a measured portable SQLite equivalence definition.",
+      "decision": "Logical SHA-256 is authoritative; binary SHA-256 is a non-authoritative receipt.",
+      "proof": "Two clean builds in distinct directories have equal logical and deterministic payload receipts."
+    },
+    {
+      "id": "BL-007",
+      "severity": "high",
+      "problem": "Direct transfer filters to author and drops other contribution roles.",
+      "decision": "Export every source-listed role and order on Work and attribution-claim records.",
+      "proof": "Fixture preserves author, translator, editor, and compiler; v2 role replacement is exact."
+    }
+  ],
+  "contracts": [
+    "book-source-1",
+    "book-index-2.0",
+    "contributor-observation-2.0",
+    "pg-observation-0.1",
+    "book-payload-input-1",
+    "book-payload-assets-1",
+    "book-locator-1.0",
+    "book-library-release-1"
+  ],
+  "verified_receipts": {
+    "source_csv_sha256": "fff72a45518bb4877626825761d38f57ee8e8619b3e222171432065d60b11fe7",
+    "books_logical_sha256": "2076314adb8310d6b33173b11d0452afda9841abac68209dc77dd77d18726d73",
+    "contributors_logical_sha256": "120be5f343325682cca6ab34b696277ef2b6a511aad03a1adc5757d99a144022",
+    "observations_ndjson_sha256": "83a1c27b07da699ff18b13b1e7707f9ab38f21f4c9926f2b7549c43456a5027e",
+    "payload_manifest_sha256": "47fca93092b5775320beba60378b0ab712b28857e20eb454b4e2cea02c1dc07e",
+    "payload_asset_sha256": "e2974a26c1d3865857fa477fdefe6d0ec1116e38e308e03655353a495e1acc55",
+    "locator_logical_sha256": "04b69ae91a826c0a50857dff81a46796caec8e1ae326685fd2b03d60d4723bec",
+    "release_manifest_sha256": "cf1bdc843bb860cfe9abab6f1e91d3cbf90a574d3a44f5f92c248affbd6b0077",
+    "offline_tests_passed": 13
+  },
+  "official_sources": [
+    {
+      "owner": "Project Gutenberg",
+      "url": "https://www.gutenberg.org/ebooks/offline_catalogs.html",
+      "used_for": ["machine-readable catalog acquisition", "update cadence", "release-date semantics"]
+    },
+    {
+      "owner": "Project Gutenberg",
+      "url": "https://www.gutenberg.org/policy/license",
+      "used_for": ["terms and jurisdiction-aware rights locator"]
+    },
+    {
+      "owner": "Library of Congress",
+      "url": "https://www.loc.gov/catdir/cpso/lcco/lccowp.html",
+      "used_for": ["LCC main-class structure"]
+    },
+    {
+      "owner": "Open Library",
+      "url": "https://openlibrary.org/dev/docs/api/authors",
+      "used_for": ["future source-native author/Work bridge"]
+    },
+    {
+      "owner": "Crossref",
+      "url": "https://www.crossref.org/documentation/retrieve-metadata/rest-api/",
+      "used_for": ["future DOI/ORCID/ROR metadata bridge"]
+    }
+  ],
+  "explicit_non_claims": [
+    "No production corpus or database was built in this lane.",
+    "No canonical People Graph identity was assigned.",
+    "No name-only identity match was accepted.",
+    "No byte-identical cross-platform SQLite guarantee is made.",
+    "No generated SQLite, tar, gzip, or full-text asset is committed or uploaded."
+  ]
+}

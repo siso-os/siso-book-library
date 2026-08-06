@@ -1,0 +1,31 @@
+{
+  "manifest_version": "book-source-1",
+  "source_id": "project_gutenberg_catalog",
+  "snapshot_id": "fixture-2026-08-06-v2",
+  "source_uri": "https://www.gutenberg.org/cache/epub/feeds/pg_catalog.csv",
+  "source_observed_at": "2026-08-06T01:00:00Z",
+  "retrieved_at": "2026-08-06T01:05:00Z",
+  "terms_revision": "https://www.gutenberg.org/policy/license",
+  "rights_state": "public_metadata",
+  "rights_basis": "Tiny synthetic replacement fixture shaped like the Project Gutenberg catalog; payload rights remain literal per-Work observations.",
+  "acquisition_method": "tracked_offline_fixture",
+  "payload_path": "../../tests/fixtures/pg_catalog_v2.csv",
+  "payload_sha256": "28be42935404e3058d8952c8eb2dcf1ac7f66d25e721c444a04f5bc76e9f9fac",
+  "expected_row_contract": {
+    "required_columns": [
+      "Text#",
+      "Type",
+      "Issued",
+      "Title",
+      "Language",
+      "Authors",
+      "Subjects",
+      "LoCC",
+      "Bookshelves",
+      "Copyright Status"
+    ],
+    "min_rows": 3,
+    "max_rows": 3
+  },
+  "raw_pointer_template": "tests/fixtures/pg_catalog_v2.csv#Text#={gid}"
+}

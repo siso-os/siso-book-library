@@ -1,0 +1,245 @@
+SISO Book Library Prompt 7 verification transcript
+Date: 2026-08-06
+Branch: books/integrity-export-parallel-20260806
+Baseline: be9ab0831b9ea8802d6898f3a3dfa8a61c63e80b
+
+$ python3 --version
+Python 3.13.5
+
+$ parse workflow YAML
+valid YAML; jobs: offline-contracts
+
+$ parse every tracked JSON document
+valid JSON documents: 9
+
+$ compile all tracked Python
+compiled successfully
+
+$ every CLI --help
+help ok: scripts/build_books_module.py
+help ok: scripts/build_people_graph.py
+help ok: scripts/export_people_graph.py
+help ok: scripts/export_people_graph_observations.py
+help ok: scripts/validate_observation_export.py
+help ok: scripts/load_into_people_graph.py
+help ok: scripts/pack_payload.py
+help ok: scripts/build_locator.py
+help ok: scripts/verify_payload.py
+help ok: scripts/logical_digest.py
+help ok: scripts/build_release_manifest.py
+help ok: scripts/build_release.py
+help ok: scripts/compare_release_summaries.py
+
+$ PYTHONPATH=scripts python3 -Werror::ResourceWarning -m unittest discover -s tests -v
+test_catalog_and_contributor_source_replacement_removes_stale_rows (test_index_integrity.BookIndexIntegrityTests.test_catalog_and_contributor_source_replacement_removes_stale_rows) ... ok
+test_extraction_queue_is_one_row_per_work_with_auditable_overlap (test_index_integrity.BookIndexIntegrityTests.test_extraction_queue_is_one_row_per_work_with_auditable_overlap) ... ok
+test_lcc_letter_digit_parsing_agrees_with_lcc_structure (test_index_integrity.BookIndexIntegrityTests.test_lcc_letter_digit_parsing_agrees_with_lcc_structure) ... ok
+test_roles_aliases_unicode_pseudonym_and_unknown_kind_are_preserved (test_index_integrity.BookIndexIntegrityTests.test_roles_aliases_unicode_pseudonym_and_unknown_kind_are_preserved) ... ok
+test_two_clean_builds_have_equal_logical_digests (test_index_integrity.BookIndexIntegrityTests.test_two_clean_builds_have_equal_logical_digests) ... ok
+test_compatibility_loader_rejects_apply_without_opening_graph (test_payload_export_integrity.PayloadAndExportIntegrityTests.test_compatibility_loader_rejects_apply_without_opening_graph) ... ok
+test_envelope_validator_rejects_canonical_and_attribute_identifiers (test_payload_export_integrity.PayloadAndExportIntegrityTests.test_envelope_validator_rejects_canonical_and_attribute_identifiers) ... ok
+test_full_pipeline_replaces_stale_metadata_payload_and_locator_set (test_payload_export_integrity.PayloadAndExportIntegrityTests.test_full_pipeline_replaces_stale_metadata_payload_and_locator_set) ... ok
+test_full_release_receipt_is_public_safe_and_source_complete (test_payload_export_integrity.PayloadAndExportIntegrityTests.test_full_release_receipt_is_public_safe_and_source_complete) ... ok
+test_locator_ranges_checksums_and_container_replacement (test_payload_export_integrity.PayloadAndExportIntegrityTests.test_locator_ranges_checksums_and_container_replacement) ... ok
+test_observation_export_preserves_roles_and_never_assigns_canonical_identity (test_payload_export_integrity.PayloadAndExportIntegrityTests.test_observation_export_preserves_roles_and_never_assigns_canonical_identity) ... ok
+test_payload_pack_is_deterministic_and_removes_stale_assets (test_payload_export_integrity.PayloadAndExportIntegrityTests.test_payload_pack_is_deterministic_and_removes_stale_assets) ... ok
+test_release_summary_comparison_uses_logical_receipts (test_payload_export_integrity.PayloadAndExportIntegrityTests.test_release_summary_comparison_uses_logical_receipts) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 1.833s
+
+OK
+
+$ two clean release builds (fixture v1)
+{
+  "authoritative_equivalence": "logical receipts and deterministic payload assets",
+  "equivalent": true,
+  "mismatches": {},
+  "receipts": {
+    "books_logical_sha256": "2076314adb8310d6b33173b11d0452afda9841abac68209dc77dd77d18726d73",
+    "books_table_counts": {
+      "book": 4,
+      "book_class": 6,
+      "book_field": 44,
+      "book_shelf": 6,
+      "book_subject": 7,
+      "source_snapshot": 1,
+      "subject_facet": 8
+    },
+    "contributors_logical_sha256": "120be5f343325682cca6ab34b696277ef2b6a511aad03a1adc5757d99a144022",
+    "contributors_table_counts": {
+      "contribution": 6,
+      "contributor_observation": 6,
+      "source_snapshot": 1
+    },
+    "locator_logical_sha256": "04b69ae91a826c0a50857dff81a46796caec8e1ae326685fd2b03d60d4723bec",
+    "observation_record_counts": {
+      "claim": 6,
+      "work": 4
+    },
+    "observations_ndjson_sha256": "83a1c27b07da699ff18b13b1e7707f9ab38f21f4c9926f2b7549c43456a5027e",
+    "payload_assets": [
+      {
+        "asset": "fixture-001.tar",
+        "bytes": 10240,
+        "member_count": 3,
+        "sha256": "e2974a26c1d3865857fa477fdefe6d0ec1116e38e308e03655353a495e1acc55"
+      }
+    ],
+    "payload_manifest_sha256": "47fca93092b5775320beba60378b0ab712b28857e20eb454b4e2cea02c1dc07e"
+  }
+}
+
+$ selected release receipts
+{
+  "books_logical_sha256": "2076314adb8310d6b33173b11d0452afda9841abac68209dc77dd77d18726d73",
+  "books_table_counts": {
+    "book": 4,
+    "book_class": 6,
+    "book_field": 44,
+    "book_shelf": 6,
+    "book_subject": 7,
+    "source_snapshot": 1,
+    "subject_facet": 8
+  },
+  "contributors_logical_sha256": "120be5f343325682cca6ab34b696277ef2b6a511aad03a1adc5757d99a144022",
+  "contributors_table_counts": {
+    "contribution": 6,
+    "contributor_observation": 6,
+    "source_snapshot": 1
+  },
+  "locator_logical_sha256": "04b69ae91a826c0a50857dff81a46796caec8e1ae326685fd2b03d60d4723bec",
+  "observation_subject_kind_counts": {
+    "claim": 6,
+    "work": 4
+  },
+  "observations_ndjson_sha256": "83a1c27b07da699ff18b13b1e7707f9ab38f21f4c9926f2b7549c43456a5027e",
+  "payload_assets": [
+    {
+      "asset": "fixture-001.tar",
+      "bytes": 10240,
+      "member_count": 3,
+      "sha256": "e2974a26c1d3865857fa477fdefe6d0ec1116e38e308e03655353a495e1acc55"
+    }
+  ],
+  "payload_manifest_sha256": "47fca93092b5775320beba60378b0ab712b28857e20eb454b4e2cea02c1dc07e",
+  "payload_verification": {
+    "containers_checked": 1,
+    "failures": [],
+    "members_by_container": {
+      "fixture-001.tar": 3
+    },
+    "members_checked": 3,
+    "valid": true
+  },
+  "release_manifest_sha256": "cf1bdc843bb860cfe9abab6f1e91d3cbf90a574d3a44f5f92c248affbd6b0077",
+  "rights_coverage": {
+    "not_restricted_us": 4
+  }
+}
+
+$ validate pg-observation-0.1 export
+{
+  "ndjson_sha256": "83a1c27b07da699ff18b13b1e7707f9ab38f21f4c9926f2b7549c43456a5027e",
+  "path": "<build-a>/people-graph-observations.ndjson",
+  "records": 10,
+  "subject_kind_counts": {
+    "claim": 6,
+    "work": 4
+  },
+  "valid": true
+}
+
+$ changed-source replacement in one output directory (v1 -> v2)
+{
+  "books_gids_after_v2": [
+    1001,
+    1003,
+    1004
+  ],
+  "contributor_gids_after_v2": [
+    1001,
+    1003,
+    1004
+  ],
+  "legacy_fields_after_v2": 0,
+  "locator_containers_after_v2": [
+    "fixture-001.tar"
+  ],
+  "locator_gids_after_v2": [
+    1001,
+    1003,
+    1004
+  ],
+  "payload_assets_after_v2": [
+    "fixture-001.tar"
+  ],
+  "roles_after_v2": [
+    "editor",
+    "translator"
+  ],
+  "source_snapshots_after_v2": [
+    "fixture-2026-08-06-v2"
+  ]
+}
+
+$ reject generated assets inside repository tree
+none
+
+$ scan for private absolute paths in tracked-source candidates
+none
+
+$ scan for unresolved engineering markers
+none
+
+$ tracked candidate file count and bytes (verification transcript excluded)
+files: 48
+bytes: 207253
+.github/workflows/book-integrity.yml	2355
+docs/changed-contracts.md	2396
+docs/contracts/contract-map.md	3206
+docs/engineering-journal.md	6834
+docs/handoff-parallel-people-graph.md	10070
+docs/payload-and-locator.md	2293
+docs/people-graph-observation-contract.md	2646
+docs/reproducibility-and-release.md	3109
+docs/source-evidence.md	3913
+docs/task-prompt-7.md	2671
+docs/work-expression-edition-bridge.md	2943
+docs/workings/baseline-audit.md	6936
+docs/workings/decision-ledger.json	5445
+index/tier_queries.sql	5433
+manifests/fixtures/catalog-v1.json	1086
+manifests/fixtures/catalog-v2.json	1098
+manifests/fixtures/payload-v1.json	1093
+manifests/fixtures/payload-v2.json	1105
+manifests/project-gutenberg-catalog.example.json	885
+manifests/schemas/book-library-release-1.schema.json	1434
+manifests/schemas/book-payload-input-1.schema.json	1177
+manifests/schemas/book-source-1.schema.json	1769
+scripts/booklib/__init__.py	283
+scripts/booklib/common.py	9749
+scripts/build_books_module.py	17653
+scripts/build_locator.py	10684
+scripts/build_people_graph.py	13619
+scripts/build_release.py	5797
+scripts/build_release_manifest.py	9238
+scripts/compare_release_summaries.py	3271
+scripts/export_people_graph.py	2678
+scripts/export_people_graph_observations.py	17912
+scripts/load_into_people_graph.py	2488
+scripts/logical_digest.py	648
+scripts/pack_payload.py	10300
+scripts/validate_observation_export.py	863
+scripts/verify_payload.py	7005
+tests/fixtures/pg_catalog_v1.csv	868
+tests/fixtures/pg_catalog_v2.csv	505
+tests/fixtures/texts_v1/1001.txt	37
+tests/fixtures/texts_v1/1002.txt	49
+tests/fixtures/texts_v1/1003.txt	49
+tests/fixtures/texts_v2/1001.txt	36
+tests/fixtures/texts_v2/1003.txt	49
+tests/fixtures/texts_v2/1004.txt	27
+tests/support.py	1901
+tests/test_index_integrity.py	7934
+tests/test_payload_export_integrity.py	13713

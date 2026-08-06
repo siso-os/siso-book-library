@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sisodias/siso-book-library/manifests/schemas/book-library-release-1.schema.json",
+  "title": "SISO Book Library release receipt v1",
+  "type": "object",
+  "required": [
+    "manifest_version",
+    "built_at",
+    "loader_version",
+    "contracts",
+    "source",
+    "rights_coverage",
+    "components",
+    "claims"
+  ],
+  "properties": {
+    "manifest_version": {"const": "book-library-release-1"},
+    "built_at": {"type": "string", "pattern": "Z$"},
+    "loader_version": {"type": "string", "minLength": 1},
+    "contracts": {"type": "object"},
+    "source": {
+      "type": "object",
+      "required": [
+        "source_id",
+        "snapshot_id",
+        "source_uri",
+        "source_observed_at",
+        "retrieved_at",
+        "terms_revision",
+        "rights_state",
+        "rights_basis",
+        "payload_sha256",
+        "source_manifest_sha256"
+      ]
+    },
+    "rights_coverage": {
+      "type": "object",
+      "additionalProperties": {"type": "integer", "minimum": 0}
+    },
+    "components": {"type": "object", "minProperties": 3},
+    "claims": {
+      "type": "object",
+      "required": [
+        "byte_for_byte_sqlite_reproducibility",
+        "logical_reproducibility_measured",
+        "canonical_people_graph_ids_assigned",
+        "name_only_identity_merges",
+        "large_assets_uploaded"
+      ]
+    }
+  }
+}

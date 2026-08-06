@@ -1,0 +1,19 @@
+{
+  "manifest_version": "book-source-1",
+  "source_id": "project_gutenberg_catalog",
+  "snapshot_id": "replace-with-source-revision-or-dated-digest",
+  "source_uri": "https://www.gutenberg.org/cache/epub/feeds/pg_catalog.csv",
+  "source_observed_at": "YYYY-MM-DDTHH:MM:SSZ",
+  "retrieved_at": "YYYY-MM-DDTHH:MM:SSZ",
+  "terms_revision": "https://www.gutenberg.org/policy/license",
+  "rights_state": "public_metadata",
+  "rights_basis": "Document the metadata and payload-rights basis verified for this acquisition.",
+  "acquisition_method": "https_download",
+  "payload_path": "path/to/pg_catalog.csv",
+  "payload_sha256": "replace-with-lowercase-sha256",
+  "expected_row_contract": {
+    "required_columns": ["Text#", "Type", "Issued", "Title", "Language", "Authors", "Subjects", "LoCC", "Bookshelves"],
+    "min_rows": 1
+  },
+  "raw_pointer_template": "pg_catalog.csv#Text#={gid}"
+}

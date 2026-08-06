@@ -1,90 +1,86 @@
--- tier_queries.sql
--- Query layer over the books catalog: turns the priority list into named VIEWS.
--- All views filter media_type='Text'. Counts measured against books_copy.sqlite.
+-- Book Library extraction priority projections, contract version 0.2.
+--
+-- The source tables never store a canonical tier. These views are reproducible
+-- projections over source metadata. v_extraction_queue returns exactly one row
+-- per Work at its best (lowest numeric) tier and retains stable, pipe-delimited
+-- reason lists for both the winning tier and every matched rule.
 
--- TIER 1 — Core: philosophy/psych/religion, history, social sciences, polsci, science, medicine, tech, education
--- WHY: the bulk of "what's actually valuable" — the LoC sections the owner flagged as extract-first.
+DROP VIEW IF EXISTS v_extraction_queue;
+DROP VIEW IF EXISTS v_tier_candidates;
+DROP VIEW IF EXISTS v_tier3;
+DROP VIEW IF EXISTS v_tier2;
+DROP VIEW IF EXISTS v_tier1_criticism;
+DROP VIEW IF EXISTS v_tier1_classical;
+DROP VIEW IF EXISTS v_tier1_biography;
+DROP VIEW IF EXISTS v_tier1_mythology;
+DROP VIEW IF EXISTS v_tier1_journalism;
+DROP VIEW IF EXISTS v_tier1_essays;
+DROP VIEW IF EXISTS v_tier1_core;
+
+-- Broad classes use section, not bookcase. That keeps letter-plus-digit LCC
+-- values such as D501 (section D, bookcase D, numeric stem 501) in the intended D core class.
 CREATE VIEW v_tier1_core AS
 SELECT DISTINCT b.gid, b.title, b.authors, b.issued
 FROM book b
 JOIN book_class c ON c.gid = b.gid
 WHERE b.media_type = 'Text'
-  AND c.bookcase IN ('B','C','D','E','F','H','J','Q','R','T','L');
+  AND c.section IN ('B','C','D','E','F','H','J','Q','R','T','L');
 
--- TIER 1 — Essays, letters, speeches ("god source")
--- WHY: cross-cutting; these sit inside language/literature (P) which would otherwise be discarded.
 CREATE VIEW v_tier1_essays AS
 SELECT DISTINCT b.gid, b.title, b.authors, b.issued
 FROM book b
 JOIN book_subject s ON s.gid = b.gid
 WHERE b.media_type = 'Text'
-  AND (s.subject LIKE '%essays%'
-       OR s.subject LIKE '%letters%'
-       OR s.subject LIKE '%speech%'
-       OR s.subject LIKE '%correspondence%');
+  AND (lower(s.subject) LIKE '%essay%'
+       OR lower(s.subject) LIKE '%letter%'
+       OR lower(s.subject) LIKE '%speech%'
+       OR lower(s.subject) LIKE '%correspondence%');
 
--- TIER 1 — Journalism / periodicals, century-old especially
--- WHY: AP-coded periodicals are dense primary source; owner wants the old ones.
 CREATE VIEW v_tier1_journalism AS
 SELECT DISTINCT b.gid, b.title, b.authors, b.issued
 FROM book b
 JOIN book_subject s ON s.gid = b.gid
 WHERE b.media_type = 'Text'
-  AND (s.subject LIKE '%journalism%'
-       OR s.subject LIKE '%periodical%'
-       OR s.subject LIKE '%newspaper%'
-       OR s.subject LIKE '%press%');
+  AND (lower(s.subject) LIKE '%journalism%'
+       OR lower(s.subject) LIKE '%periodical%'
+       OR lower(s.subject) LIKE '%newspaper%'
+       OR lower(s.subject) LIKE '%press%');
 
--- TIER 1 — Mythology, legends, folklore
--- WHY: cultural heritage — owner explicit pick.
 CREATE VIEW v_tier1_mythology AS
 SELECT DISTINCT b.gid, b.title, b.authors, b.issued
 FROM book b
 JOIN book_subject s ON s.gid = b.gid
 WHERE b.media_type = 'Text'
-  AND (s.subject LIKE '%mytholog%'
-       OR s.subject LIKE '%legend%'
-       OR s.subject LIKE '%folklore%'
-       OR s.subject LIKE '%fable%');
+  AND (lower(s.subject) LIKE '%mytholog%'
+       OR lower(s.subject) LIKE '%legend%'
+       OR lower(s.subject) LIKE '%folklore%'
+       OR lower(s.subject) LIKE '%fable%');
 
--- TIER 1 — Biographies
--- WHY: always valuable; cross-cuts sections.
 CREATE VIEW v_tier1_biography AS
 SELECT DISTINCT b.gid, b.title, b.authors, b.issued
 FROM book b
 JOIN book_subject s ON s.gid = b.gid
 WHERE b.media_type = 'Text'
-  AND (s.subject LIKE '%biograph%');
+  AND lower(s.subject) LIKE '%biograph%';
 
--- TIER 1 — Classical Greek/Latin (PA)
--- WHY: primary sources from antiquity; sits inside P but flagged.
 CREATE VIEW v_tier1_classical AS
 SELECT DISTINCT b.gid, b.title, b.authors, b.issued
 FROM book b
 JOIN book_class c ON c.gid = b.gid
-WHERE b.media_type = 'Text'
-  AND c.bookcase = 'PA';
+WHERE b.media_type = 'Text' AND c.bookcase = 'PA';
 
--- TIER 1 — Literary criticism/theory (PN)
--- WHY: analytical layer over literature; owner explicit pick.
 CREATE VIEW v_tier1_criticism AS
 SELECT DISTINCT b.gid, b.title, b.authors, b.issued
 FROM book b
 JOIN book_class c ON c.gid = b.gid
-WHERE b.media_type = 'Text'
-  AND c.bookcase = 'PN';
+WHERE b.media_type = 'Text' AND c.bookcase = 'PN';
 
--- TIER 2 — Hold, revisit: language, geography/anthropology, agriculture, fine arts
--- WHY: owner marked these for second pass; not discarded.
 CREATE VIEW v_tier2 AS
 SELECT DISTINCT b.gid, b.title, b.authors, b.issued
 FROM book b
 JOIN book_class c ON c.gid = b.gid
-WHERE b.media_type = 'Text'
-  AND c.bookcase IN ('P','G','S','N');
+WHERE b.media_type = 'Text' AND c.section IN ('P','G','S','N');
 
--- TIER 3 — Store, don't extract: juvenile fiction (PZ), romance, music, fashion, cookery
--- WHY: explicitly low-value for extraction pipeline.
 CREATE VIEW v_tier3 AS
 SELECT DISTINCT b.gid, b.title, b.authors, b.issued
 FROM book b
@@ -92,38 +88,76 @@ LEFT JOIN book_class c ON c.gid = b.gid AND c.bookcase = 'PZ'
 LEFT JOIN book_subject s ON s.gid = b.gid
 WHERE b.media_type = 'Text'
   AND (c.gid IS NOT NULL
-       OR s.subject LIKE '%romance%'
-       OR s.subject LIKE '%music%'
-       OR s.subject LIKE '%fashion%'
-       OR s.subject LIKE '%cookery%'
-       OR s.subject LIKE '%cooking%');
+       OR lower(s.subject) LIKE '%romance%'
+       OR lower(s.subject) LIKE '%music%'
+       OR lower(s.subject) LIKE '%fashion%'
+       OR lower(s.subject) LIKE '%cookery%'
+       OR lower(s.subject) LIKE '%cooking%');
 
--- v_extraction_queue: union of tier1, deduped at highest tier, with reason.
--- Priority order: core > criticism > classical > biography > mythology > essays > journalism.
+CREATE VIEW v_tier_candidates AS
+SELECT 1 AS tier_rank, 'tier1' AS tier, 10 AS reason_priority,
+       'core_sections' AS reason, gid
+FROM v_tier1_core
+UNION ALL
+SELECT 1, 'tier1', 20, 'criticism_PN', gid FROM v_tier1_criticism
+UNION ALL
+SELECT 1, 'tier1', 30, 'classical_PA', gid FROM v_tier1_classical
+UNION ALL
+SELECT 1, 'tier1', 40, 'biography', gid FROM v_tier1_biography
+UNION ALL
+SELECT 1, 'tier1', 50, 'mythology', gid FROM v_tier1_mythology
+UNION ALL
+SELECT 1, 'tier1', 60, 'essays_letters_speeches', gid FROM v_tier1_essays
+UNION ALL
+SELECT 1, 'tier1', 70, 'journalism_periodicals', gid FROM v_tier1_journalism
+UNION ALL
+SELECT 2, 'tier2', 10, 'hold_revisit', gid FROM v_tier2
+UNION ALL
+SELECT 3, 'tier3', 10, 'store_without_extraction', gid FROM v_tier3;
+
 CREATE VIEW v_extraction_queue AS
-SELECT 'tier1' AS tier, 'core_sections' AS reason, gid, title, authors, issued FROM v_tier1_core
-UNION SELECT 'tier1', 'criticism_PN', gid, title, authors, issued FROM v_tier1_criticism
-UNION SELECT 'tier1', 'classical_PA', gid, title, authors, issued FROM v_tier1_classical
-UNION SELECT 'tier1', 'biography', gid, title, authors, issued FROM v_tier1_biography
-UNION SELECT 'tier1', 'mythology', gid, title, authors, issued FROM v_tier1_mythology
-UNION SELECT 'tier1', 'essays_letters_speeches', gid, title, authors, issued FROM v_tier1_essays
-UNION SELECT 'tier1', 'journalism_periodicals', gid, title, authors, issued FROM v_tier1_journalism
-UNION SELECT 'tier2', 'hold_revisit', gid, title, authors, issued FROM v_tier2;
+WITH best AS (
+  SELECT gid, MIN(tier_rank) AS tier_rank
+  FROM v_tier_candidates
+  GROUP BY gid
+)
+SELECT
+  best.gid,
+  printf('tier%d', best.tier_rank) AS tier,
+  best.tier_rank,
+  b.title,
+  b.authors,
+  b.issued,
+  (
+    SELECT group_concat(reason, '|')
+    FROM (
+      SELECT reason
+      FROM v_tier_candidates winning
+      WHERE winning.gid = best.gid
+        AND winning.tier_rank = best.tier_rank
+      GROUP BY reason
+      ORDER BY MIN(reason_priority), reason
+    )
+  ) AS reason_list,
+  (
+    SELECT COUNT(DISTINCT reason)
+    FROM v_tier_candidates winning
+    WHERE winning.gid = best.gid
+      AND winning.tier_rank = best.tier_rank
+  ) AS reason_count,
+  (
+    SELECT group_concat(reason, '|')
+    FROM (
+      SELECT reason
+      FROM v_tier_candidates matched
+      WHERE matched.gid = best.gid
+      GROUP BY reason
+      ORDER BY MIN(tier_rank), MIN(reason_priority), reason
+    )
+  ) AS all_reason_list
+FROM best
+JOIN book b ON b.gid = best.gid;
 
--- ---------------------------------------------------------------------------
--- CORRECTION, recorded so nobody repeats the mistake.
---
--- `book.issued` is Gutenberg's DIGITISATION date, not the work's publication
--- date. Receipts: the Declaration of Independence carries issued=1971-12-01;
--- Lincoln's Gettysburg Address carries 1973-11-01. Gutenberg's own metadata
--- documentation states print-source publication dates are deliberately excluded.
---
--- Consequence: an earlier pass concluded "zero periodicals pre-1950, all 4,334
--- post-2000" and dropped a date filter as a result. That reading was wrong. The
--- century-old journalism IS in the corpus; `issued` simply cannot find it.
---
--- The correct proxy is AUTHOR LIFE DATES, which the people graph holds for
--- 27,568 people (BCE stored negative). A periodical whose author died in 1890
--- is 19th-century journalism regardless of when a volunteer typed it up.
--- Join people_books.sqlite person/person_work on gid to filter by era.
--- ---------------------------------------------------------------------------
+-- ``book.issued`` remains the Project Gutenberg digitisation date, not a print
+-- publication date. Historical prioritisation must use source-grounded edition
+-- or contributor-date evidence when available, not reinterpret this column.
