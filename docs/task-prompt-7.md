@@ -2,7 +2,8 @@
 
 Date received: 2026-08-06  
 Repository: `sisodias/siso-book-library`  
-Branch: `books/integrity-export-parallel-20260806`
+Requested branch: `books/integrity-export-parallel-20260806`  
+Effective branch: `books/integrity-export-parallel-20260806-3` (the requested branch and `-2` already existed at final publish and were preserved)
 
 This file preserves the implementation lane that produced this change so later
 agents can evaluate scope without relying on chat history.

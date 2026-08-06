@@ -2,11 +2,15 @@
 
 ## Scope
 
-Implemented Prompt 7 on branch `books/integrity-export-parallel-20260806` from
+Implemented Prompt 7 on branch `books/integrity-export-parallel-20260806-3` from
 Book Library main commit `be9ab0831b9ea8802d6898f3a3dfa8a61c63e80b`.
 The lane makes metadata/contributor builds source-replaceable, corrects LCC and
 queue contracts, adds deterministic payload/locator tooling, and replaces direct
 name-based canonical mutation with validated `pg-observation-0.1` export.
+
+The requested branch and its `-2` successor were already occupied when the final
+publish began. Both refs were preserved; this lane used the next collision-safe
+suffix rather than force-updating another agent's work.
 
 No production database, payload corpus, release asset, credential, or private
 path is included.

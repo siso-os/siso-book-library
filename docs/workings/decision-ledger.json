@@ -3,7 +3,7 @@
   "date": "2026-08-06",
   "repository": "sisodias/siso-book-library",
   "baseline_commit": "be9ab0831b9ea8802d6898f3a3dfa8a61c63e80b",
-  "branch": "books/integrity-export-parallel-20260806",
+  "branch": "books/integrity-export-parallel-20260806-3",
   "scope_paths": [
     "scripts/**",
     "index/**",
@@ -88,27 +88,39 @@
     {
       "owner": "Project Gutenberg",
       "url": "https://www.gutenberg.org/ebooks/offline_catalogs.html",
-      "used_for": ["machine-readable catalog acquisition", "update cadence", "release-date semantics"]
+      "used_for": [
+        "machine-readable catalog acquisition",
+        "update cadence",
+        "release-date semantics"
+      ]
     },
     {
       "owner": "Project Gutenberg",
       "url": "https://www.gutenberg.org/policy/license",
-      "used_for": ["terms and jurisdiction-aware rights locator"]
+      "used_for": [
+        "terms and jurisdiction-aware rights locator"
+      ]
     },
     {
       "owner": "Library of Congress",
       "url": "https://www.loc.gov/catdir/cpso/lcco/lccowp.html",
-      "used_for": ["LCC main-class structure"]
+      "used_for": [
+        "LCC main-class structure"
+      ]
     },
     {
       "owner": "Open Library",
       "url": "https://openlibrary.org/dev/docs/api/authors",
-      "used_for": ["future source-native author/Work bridge"]
+      "used_for": [
+        "future source-native author/Work bridge"
+      ]
     },
     {
       "owner": "Crossref",
       "url": "https://www.crossref.org/documentation/retrieve-metadata/rest-api/",
-      "used_for": ["future DOI/ORCID/ROR metadata bridge"]
+      "used_for": [
+        "future DOI/ORCID/ROR metadata bridge"
+      ]
     }
   ],
   "explicit_non_claims": [
@@ -117,5 +129,7 @@
     "No name-only identity match was accepted.",
     "No byte-identical cross-platform SQLite guarantee is made.",
     "No generated SQLite, tar, gzip, or full-text asset is committed or uploaded."
-  ]
+  ],
+  "requested_branch": "books/integrity-export-parallel-20260806",
+  "branch_collision_resolution": "The requested branch and -2 existed at final publish; both were preserved and the next suffix was used without force-push."
 }

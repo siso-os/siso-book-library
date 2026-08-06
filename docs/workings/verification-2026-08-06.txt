@@ -1,6 +1,8 @@
 SISO Book Library Prompt 7 verification transcript
 Date: 2026-08-06
-Branch: books/integrity-export-parallel-20260806
+Requested branch: books/integrity-export-parallel-20260806
+Effective branch: books/integrity-export-parallel-20260806-3
+Collision handling: existing requested and -2 refs preserved; no force update
 Baseline: be9ab0831b9ea8802d6898f3a3dfa8a61c63e80b
 
 $ python3 --version
