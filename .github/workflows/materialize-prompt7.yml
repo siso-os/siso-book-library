@@ -1,0 +1,182 @@
+name: Materialize Prompt 7 implementation
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  materialize:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out the PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: Reconstruct and verify reviewed source archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_ARCHIVE_SHA256: 01979b3418fd2d0c5067a75a17c22c30ed03a82ccf025671193a899b839203f6
+        run: |
+          python3 - <<'PY'
+          import base64
+          import hashlib
+          import json
+          import os
+          import tarfile
+          import urllib.request
+          from pathlib import Path, PurePosixPath
+
+          chunk_shas = [
+              "219a00eb0e4edd521c18fa1fae31fbfd36a64cdd",
+              "6be25b8a54fbfa823698a6e423e422da4788d27d",
+              "95c80ea42418a9cb4b4f95e38e7f2e7f1249dc5d",
+              "6471155183281ccfaae43757c17126c515ce2f01",
+              "29dd2874c4af78015efd11e2fb403c484834bfe4",
+          ]
+          archive_path = Path("/tmp/prompt7-final-changes.tar.gz")
+          api = os.environ.get("GITHUB_API_URL", "https://api.github.com")
+          repo = os.environ["GITHUB_REPOSITORY"]
+          token = os.environ["GH_TOKEN"]
+
+          with archive_path.open("wb") as output:
+              for sha in chunk_shas:
+                  request = urllib.request.Request(
+                      f"{api}/repos/{repo}/git/blobs/{sha}",
+                      headers={
+                          "Authorization": f"Bearer {token}",
+                          "Accept": "application/vnd.github+json",
+                          "X-GitHub-Api-Version": "2022-11-28",
+                          "User-Agent": "siso-book-library-prompt7-materializer",
+                      },
+                  )
+                  with urllib.request.urlopen(request) as response:
+                      payload = json.load(response)
+                  raw = base64.b64decode(payload["content"])
+                  git_sha = hashlib.sha1(
+                      f"blob {len(raw)}\0".encode("ascii") + raw
+                  ).hexdigest()
+                  if git_sha != sha:
+                      raise SystemExit(f"Git blob verification failed for {sha}: {git_sha}")
+                  output.write(raw)
+
+          archive_sha = hashlib.sha256(archive_path.read_bytes()).hexdigest()
+          expected_sha = os.environ["EXPECTED_ARCHIVE_SHA256"]
+          if archive_sha != expected_sha:
+              raise SystemExit(f"Archive SHA-256 mismatch: {archive_sha} != {expected_sha}")
+
+          allowed_exact = {".gitignore"}
+          allowed_prefixes = (
+              ".github/workflows/",
+              "docs/",
+              "index/",
+              "manifests/",
+              "scripts/",
+              "tests/",
+          )
+          required = {
+              ".github/workflows/book-library-integrity.yml",
+              "docs/handoff-parallel-people-graph.md",
+              "scripts/build_books_module.py",
+              "scripts/export_people_graph_observations.py",
+              "scripts/run_fixture_pipeline.py",
+              "tests/test_integrity.py",
+          }
+          written = set()
+
+          with tarfile.open(archive_path, "r:gz") as archive:
+              for member in archive.getmembers():
+                  name = PurePosixPath(member.name)
+                  if name.is_absolute() or ".." in name.parts:
+                      raise SystemExit(f"Unsafe archive path: {member.name}")
+                  rel = name.as_posix()
+                  if member.isdir():
+                      continue
+                  if not member.isfile():
+                      raise SystemExit(f"Unsupported archive member type: {member.name}")
+                  if rel == ".github/workflows/materialize-prompt7.yml":
+                      raise SystemExit("Archive may not replace its materializer")
+                  if rel not in allowed_exact and not rel.startswith(allowed_prefixes):
+                      raise SystemExit(f"Path outside Prompt 7 ownership: {rel}")
+                  source = archive.extractfile(member)
+                  if source is None:
+                      raise SystemExit(f"Could not read archive member: {rel}")
+                  destination = Path(rel)
+                  destination.parent.mkdir(parents=True, exist_ok=True)
+                  destination.write_bytes(source.read())
+                  destination.chmod(member.mode & 0o777)
+                  written.add(rel)
+
+          missing = sorted(required - written)
+          if missing:
+              raise SystemExit(f"Required files missing from archive: {missing}")
+
+          Path(".github/workflows/materialize-prompt7.yml").unlink(missing_ok=True)
+          print(json.dumps({
+              "archive_sha256": archive_sha,
+              "files_written": len(written),
+              "paths": sorted(written),
+          }, indent=2))
+          PY
+
+      - name: Run offline validation
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          python3 -m compileall -q scripts tests
+          find . -type d -name __pycache__ -prune -exec rm -rf {} +
+          python3 -m unittest discover -v
+          rm -rf /tmp/siso-book-library-prompt7-ci
+          python3 scripts/run_fixture_pipeline.py \
+            --work-dir /tmp/siso-book-library-prompt7-ci \
+            --clean
+
+      - name: Enforce repository and path policy
+        run: |
+          if find . -path ./.git -prune -o -type f \
+            \( -name '*.sqlite' -o -name '*.sqlite-*' -o -name '*.tar' \
+               -o -name '*.gz' -o -name '*.zip' \) -print | grep -q .; then
+            echo 'Generated database/archive found in the worktree' >&2
+            exit 1
+          fi
+          git add -A
+          python3 - <<'PY'
+          import subprocess
+
+          allowed_exact = {
+              ".gitignore",
+              ".github/workflows/book-library-integrity.yml",
+              ".github/workflows/materialize-prompt7.yml",
+          }
+          allowed_prefixes = ("docs/", "index/", "manifests/", "scripts/", "tests/")
+          changed = subprocess.check_output(
+              ["git", "diff", "--cached", "--name-only"], text=True
+          ).splitlines()
+          invalid = [
+              path for path in changed
+              if path not in allowed_exact and not path.startswith(allowed_prefixes)
+          ]
+          if invalid:
+              raise SystemExit(f"Changed paths outside Prompt 7 ownership: {invalid}")
+          if not changed:
+              raise SystemExit("Materialization produced no staged changes")
+          print("Validated changed paths:")
+          print("\n".join(changed))
+          PY
+          git diff --cached --check
+          git diff --cached --stat
+
+      - name: Commit the validated implementation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Books: make the index and People Graph export reproducible" \
+            -m "Materialized from reviewed archive SHA-256 01979b3418fd2d0c5067a75a17c22c30ed03a82ccf025671193a899b839203f6."
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
