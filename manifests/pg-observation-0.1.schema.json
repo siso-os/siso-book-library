@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sisodias/siso-book-library/manifests/pg-observation-0.1.schema.json",
+  "title": "Parallel People Graph observation envelope v0.1",
+  "type": "object",
+  "required": [
+    "envelope_version",
+    "source",
+    "subject",
+    "identifiers",
+    "contributions",
+    "relationships",
+    "evidence",
+    "raw_pointer"
+  ],
+  "properties": {
+    "envelope_version": {"const": "pg-observation-0.1"},
+    "source": {
+      "type": "object",
+      "required": [
+        "source_id",
+        "snapshot_id",
+        "record_native_id",
+        "observed_at",
+        "retrieved_at",
+        "terms_revision",
+        "rights_state",
+        "payload_sha256"
+      ],
+      "properties": {
+        "source_id": {"type": "string", "minLength": 1},
+        "snapshot_id": {"type": "string", "minLength": 1},
+        "record_native_id": {"type": "string", "minLength": 1},
+        "observed_at": {"type": "string", "minLength": 1},
+        "retrieved_at": {"type": "string", "minLength": 1},
+        "terms_revision": {"type": "string", "minLength": 1},
+        "rights_state": {
+          "enum": [
+            "public_metadata",
+            "open_data",
+            "restricted",
+            "discovery_only",
+            "pending"
+          ]
+        },
+        "payload_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      },
+      "additionalProperties": false
+    },
+    "subject": {
+      "type": "object",
+      "required": ["kind", "source_native_id", "label", "attributes"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "person",
+            "organisation",
+            "account",
+            "work",
+            "event",
+            "venue",
+            "place",
+            "concept",
+            "claim"
+          ]
+        },
+        "source_native_id": {"type": "string", "minLength": 1},
+        "label": {"type": "string"},
+        "attributes": {"type": "object"}
+      },
+      "additionalProperties": false
+    },
+    "identifiers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "scheme",
+          "value",
+          "scope",
+          "stability",
+          "uniqueness",
+          "evidence"
+        ],
+        "properties": {
+          "scheme": {"type": "string", "minLength": 1},
+          "value": {"type": "string"},
+          "scope": {"enum": ["global", "source", "organisation"]},
+          "stability": {"enum": ["stable", "mutable", "unknown"]},
+          "uniqueness": {"enum": ["unique", "non_unique", "unknown"]},
+          "evidence": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "contributions": {"type": "array", "items": {"type": "object"}},
+    "relationships": {"type": "array", "items": {"type": "object"}},
+    "evidence": {"type": "array", "items": {"type": "object"}},
+    "raw_pointer": {"type": "string"}
+  },
+  "additionalProperties": false
+}

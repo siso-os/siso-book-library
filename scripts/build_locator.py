@@ -1,39 +1,13 @@
 #!/usr/bin/env python3
-"""Answer "where does this book actually live?" — the locator index.
+"""Index exact tar member offsets, lengths, encodings, and SHA-256 digests.
 
-The gap this closes: `ask.py --works Plato` returns `{"domain":"book","ref":"1497"}`.
-That is an identity, not a location. An agent holding a Frontier Question needs
-to go from that reference to actual text, and right now nothing tells it how.
-
-The payload is an 11.2 GB zip containing a single 30.4 GB tar of ~79k text files.
-Reading one book by unpacking 30 GB is absurd, so we index the tar ONCE and
-record, per book, the exact byte offset and length of its member. After that,
-fetching any single book is a seek and a read -- O(1), no unpacking.
-
-That same offset+length is what makes GitHub distribution work: release assets
-serve HTTP 206 byte-range requests (verified), so an agent with no local copy
-issues one ranged request and gets exactly one book.
-
-The locator therefore stores every route to the same bytes:
-    local  -- vault path + byte range
-    remote -- release asset URL + byte range
-    origin -- the upstream URL it came from, so it can always be re-fetched
-
-Design notes:
-  * The index is DERIVED. Losing it costs one re-scan, never data. It is
-    deliberately a separate DB from books.sqlite so the catalog stays portable
-    and machine-independent while locations are per-machine.
-  * A tar member header is 512 bytes; the file content starts immediately after
-    and is padded to a 512-byte boundary. Scanning headers alone means we read
-    ~40 MB of a 30 GB archive rather than the whole thing.
-  * Gutenberg ids are recovered from member paths (e.g. "84/84.txt" or
-    "cache/epub/84/pg84.txt"), which is what joins this to books.sqlite.
-
-Usage:
-  build_locator.py --tar /path/to/txt-files.tar --db locator.sqlite
-  build_locator.py --tar ... --db ... --limit 5000     # partial scan for testing
+Re-indexing a container is a source replacement: old rows for that container are
+deleted inside the same transaction before current members are inserted.
 """
+from __future__ import annotations
+
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -41,114 +15,248 @@ import sqlite3
 import sys
 import tarfile
 import time
+from pathlib import Path
 
+try:
+    from scripts.common import (
+        LOADER_VERSION,
+        canonical_json,
+        sha256_file,
+        write_public_receipt_atomic,
+    )
+except ModuleNotFoundError:
+    from common import (  # type: ignore
+        LOADER_VERSION,
+        canonical_json,
+        sha256_file,
+        write_public_receipt_atomic,
+    )
+
+LOCATOR_SCHEMA_VERSION = "payload-locator-2"
 SCHEMA = """
+PRAGMA foreign_keys = ON;
+CREATE TABLE IF NOT EXISTS container (
+  container TEXT PRIMARY KEY,
+  path TEXT NOT NULL,
+  uri TEXT,
+  sha256 TEXT NOT NULL,
+  bytes INTEGER NOT NULL,
+  members INTEGER NOT NULL,
+  indexed_at TEXT NOT NULL,
+  loader_version TEXT NOT NULL,
+  schema_version TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS location (
-  gid          INTEGER NOT NULL,     -- joins books.sqlite book.gid
-  container    TEXT NOT NULL,        -- which archive holds it
-  member       TEXT NOT NULL,        -- path inside the archive
-  offset       INTEGER NOT NULL,     -- byte offset of CONTENT (not the header)
-  length       INTEGER NOT NULL,
-  encoding     TEXT,
-  route        TEXT NOT NULL DEFAULT 'local',  -- local | release | origin
-  uri          TEXT,                 -- vault path, asset URL, or upstream URL
-  indexed_at   TEXT NOT NULL,
+  gid INTEGER NOT NULL,
+  container TEXT NOT NULL REFERENCES container(container) ON DELETE CASCADE,
+  member TEXT NOT NULL,
+  offset INTEGER NOT NULL CHECK(offset >= 0),
+  length INTEGER NOT NULL CHECK(length >= 0),
+  encoding TEXT NOT NULL,
+  payload_sha256 TEXT NOT NULL,
+  route TEXT NOT NULL CHECK(route IN ('local','release')),
+  uri TEXT NOT NULL,
+  indexed_at TEXT NOT NULL,
   PRIMARY KEY (gid, container, route)
 );
-CREATE INDEX IF NOT EXISTS ix_loc_gid   ON location(gid);
+CREATE INDEX IF NOT EXISTS ix_loc_gid ON location(gid);
 CREATE INDEX IF NOT EXISTS ix_loc_route ON location(route);
-
--- One row per archive we have indexed, so a re-scan is detectable and the
--- container can be re-verified without re-reading every member.
-CREATE TABLE IF NOT EXISTS container (
-  container   TEXT PRIMARY KEY,
-  path        TEXT NOT NULL,
-  bytes       INTEGER,
-  members     INTEGER,
-  indexed_at  TEXT NOT NULL
-);
 """
+GID = re.compile(r"(?:^|/)(?:pg)?(\d+)(?:-\d+)?\.txt(?:\.gz)?$", re.IGNORECASE)
 
-# "84/84.txt", "cache/epub/84/pg84.txt", "1/0/0/1001/1001.txt" -- Gutenberg's
-# layouts vary by era. The id is the last standalone run of digits before the
-# extension, which holds across all of them.
-GID = re.compile(r"(?:^|/)(?:pg)?(\d+)(?:-\d+)?\.txt$", re.IGNORECASE)
+EXPECTED_COLUMNS = {
+    "container": {
+        "container", "path", "uri", "sha256", "bytes", "members",
+        "indexed_at", "loader_version", "schema_version",
+    },
+    "location": {
+        "gid", "container", "member", "offset", "length", "encoding",
+        "payload_sha256", "route", "uri", "indexed_at",
+    },
+}
 
 
-def gid_from(member):
-    m = GID.search(member)
-    return int(m.group(1)) if m else None
+def _table_columns(connection: sqlite3.Connection, table: str) -> set[str]:
+    return {str(row[1]) for row in connection.execute(f"PRAGMA table_info({table})")}
 
 
-def build(tar_path, db_path, container_name, uri, limit):
-    con = sqlite3.connect(db_path)
-    con.executescript(SCHEMA)
-    now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+def _ensure_schema(connection: sqlite3.Connection) -> None:
+    existing = {
+        str(row[0])
+        for row in connection.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        )
+    }
+    managed = existing & set(EXPECTED_COLUMNS)
+    if managed:
+        for table, expected in EXPECTED_COLUMNS.items():
+            actual = _table_columns(connection, table)
+            if actual != expected:
+                raise RuntimeError(
+                    "locator database uses an incompatible derived schema; "
+                    "regenerate it into a fresh file with build_locator.py "
+                    f"(table {table}: expected {sorted(expected)}, got {sorted(actual)})"
+                )
+    connection.executescript(SCHEMA)
 
-    rows = []
-    seen = skipped = 0
 
-    # Stream the tar reading only headers. tarfile exposes offset_data, which is
-    # precisely the byte position of the member's content in the archive.
-    with tarfile.open(tar_path, "r|*") as tf:
-        for info in tf:
+def _logical_digest(members: list[tuple[int, str, int, int, str, str]]) -> str:
+    digest = hashlib.sha256()
+    for row in sorted(members):
+        digest.update(canonical_json(list(row)).encode("utf-8"))
+        digest.update(b"\n")
+    return digest.hexdigest()
+
+
+def gid_from(member: str) -> int | None:
+    match = GID.search(member)
+    return int(match.group(1)) if match else None
+
+
+def _hash_member(tar: tarfile.TarFile, info: tarfile.TarInfo) -> str:
+    extracted = tar.extractfile(info)
+    if extracted is None:
+        raise ValueError(f"unable to read tar member {info.name}")
+    digest = hashlib.sha256()
+    for chunk in iter(lambda: extracted.read(1024 * 1024), b""):
+        digest.update(chunk)
+    return digest.hexdigest()
+
+
+def build(
+    tar_path: str,
+    db_path: str,
+    container_name: str = "gutenberg-payload",
+    local_uri: str | None = None,
+    release_uri: str | None = None,
+    indexed_at: str | None = None,
+    manifest_out: str | None = None,
+) -> dict[str, object]:
+    archive = Path(tar_path)
+    if not archive.is_file():
+        raise FileNotFoundError(archive)
+    now = indexed_at or time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    container_digest = sha256_file(archive)
+    local = local_uri or str(archive)
+
+    members: list[tuple[int, str, int, int, str, str]] = []
+    duplicate_gids: set[int] = set()
+    seen_gids: set[int] = set()
+    skipped = 0
+    with tarfile.open(archive, "r:") as tar:
+        for info in tar:
             if not info.isfile():
                 continue
-            seen += 1
             gid = gid_from(info.name)
             if gid is None:
                 skipped += 1
                 continue
-            rows.append(
-                (gid, container_name, info.name, info.offset_data,
-                 info.size, None, "local", uri, now)
-            )
-            if len(rows) >= 5000:
-                con.executemany(
-                    "INSERT OR REPLACE INTO location VALUES (?,?,?,?,?,?,?,?,?)",
-                    rows,
+            if gid in seen_gids:
+                duplicate_gids.add(gid)
+                continue
+            seen_gids.add(gid)
+            encoding = "gzip" if info.name.casefold().endswith(".gz") else "identity"
+            members.append(
+                (
+                    gid,
+                    info.name,
+                    int(info.offset_data),
+                    int(info.size),
+                    encoding,
+                    _hash_member(tar, info),
                 )
-                con.commit()
-                rows = []
-            if limit and seen >= limit:
-                break
+            )
+    if duplicate_gids:
+        raise ValueError(f"duplicate Gutenberg IDs in container: {sorted(duplicate_gids)[:10]}")
 
-    if rows:
-        con.executemany(
-            "INSERT OR REPLACE INTO location VALUES (?,?,?,?,?,?,?,?,?)", rows
+    connection = sqlite3.connect(db_path)
+    try:
+        _ensure_schema(connection)
+        connection.execute("BEGIN IMMEDIATE")
+        connection.execute("DELETE FROM container WHERE container = ?", (container_name,))
+        connection.execute(
+            "INSERT INTO container VALUES (?,?,?,?,?,?,?,?,?)",
+            (
+                container_name,
+                str(archive),
+                release_uri,
+                container_digest,
+                archive.stat().st_size,
+                len(members),
+                now,
+                LOADER_VERSION,
+                LOCATOR_SCHEMA_VERSION,
+            ),
         )
+        local_rows = [
+            (
+                gid, container_name, member, offset, length, encoding, digest,
+                "local", local, now,
+            )
+            for gid, member, offset, length, encoding, digest in members
+        ]
+        connection.executemany(
+            "INSERT INTO location VALUES (?,?,?,?,?,?,?,?,?,?)", local_rows
+        )
+        if release_uri:
+            release_rows = [
+                (
+                    gid, container_name, member, offset, length, encoding, digest,
+                    "release", release_uri, now,
+                )
+                for gid, member, offset, length, encoding, digest in members
+            ]
+            connection.executemany(
+                "INSERT INTO location VALUES (?,?,?,?,?,?,?,?,?,?)", release_rows
+            )
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        connection.close()
 
-    total = con.execute("SELECT COUNT(*) FROM location").fetchone()[0]
-    con.execute(
-        "INSERT OR REPLACE INTO container VALUES (?,?,?,?,?)",
-        (container_name, tar_path, os.path.getsize(tar_path)
-         if os.path.exists(tar_path) else None, total, now),
-    )
-    con.commit()
-
-    summary = {
-        "members_scanned": seen,
-        "located": total,
-        "skipped_no_gid": skipped,
+    locator_digest = _logical_digest(members)
+    route_count = 1 + (1 if release_uri else 0)
+    manifest: dict[str, object] = {
+        "manifest_version": "book-library-locator-1",
         "container": container_name,
-        "db": db_path,
+        "tar": str(archive),
+        "tar_sha256": container_digest,
+        "tar_bytes": archive.stat().st_size,
+        "members": len(members),
+        "logical_digest": locator_digest,
+        "row_counts": {"container": 1, "location": len(members) * route_count},
+        "routes": ["local"] + (["release"] if release_uri else []),
+        "skipped_members_without_gid": skipped,
+        "loader_version": LOADER_VERSION,
+        "schema_version": LOCATOR_SCHEMA_VERSION,
+        "database": db_path,
     }
-    con.close()
-    return summary
+    if manifest_out:
+        write_public_receipt_atomic(manifest_out, manifest)
+    return manifest
 
 
-def main():
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--tar", required=True)
-    ap.add_argument("--db", default="locator.sqlite")
-    ap.add_argument("--container", default="gutenberg-txt")
-    ap.add_argument("--uri", help="vault path or URL this container is reachable at")
-    ap.add_argument("--limit", type=int, default=0)
-    a = ap.parse_args()
-    t = time.time()
-    s = build(a.tar, a.db, a.container, a.uri or a.tar, a.limit)
-    s["elapsed_s"] = round(time.time() - t, 2)
-    print(json.dumps(s, indent=2))
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--tar", required=True)
+    parser.add_argument("--db", default="locator.sqlite")
+    parser.add_argument("--container", default="gutenberg-payload")
+    parser.add_argument("--local-uri")
+    parser.add_argument("--release-uri")
+    parser.add_argument("--indexed-at")
+    parser.add_argument("--manifest-out")
+    arguments = parser.parse_args()
+    print(json.dumps(build(
+        tar_path=arguments.tar,
+        db_path=arguments.db,
+        container_name=arguments.container,
+        local_uri=arguments.local_uri,
+        release_uri=arguments.release_uri,
+        indexed_at=arguments.indexed_at,
+        manifest_out=arguments.manifest_out,
+    ), indent=2, sort_keys=True))
     return 0
 
 

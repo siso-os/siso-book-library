@@ -1,0 +1,31 @@
+{
+  "report_version": "book-library-path-independence-1",
+  "status": "pass",
+  "runs": [
+    "distinct-work-directory-a",
+    "distinct-work-directory-b"
+  ],
+  "checks": {
+    "component_and_release_manifests_contain_work_directory": false,
+    "json_formatting_changes_release_identity": false,
+    "metadata_logical_digest_equal": true,
+    "contributor_logical_digest_equal": true,
+    "observation_logical_digest_equal": true,
+    "payload_logical_digest_equal": true,
+    "payload_tar_sha256_equal": true,
+    "release_manifest_sha256_equal": true
+  },
+  "digests": {
+    "metadata_logical_sha256": "abc7e01182af081428fe99c63c259e13b3124cf0b648454ffd8ef541f94743a1",
+    "contributor_logical_sha256": "ad9c2400d419c754bddde03f3099d2cd5715400a6d471f48e669ef8772d5c863",
+    "observation_logical_sha256": "1eb9c3a11a341f036433d6549b2a3e442892545146bb01b1d37ac62e10feef18",
+    "payload_logical_sha256": "30a9d65f68ebe8f8be4b23500b51da64d481a8dd5b9b34c04ef69a66fc1a9bc4",
+    "payload_tar_sha256": "3d97cf6a56c63fb782010a5dfcc6cfd40f4a02a1c7b971ce632036b61ad0a2d2",
+    "release_manifest_sha256": "11e482cd8fbc5bf0991db81b6ac4e285a19a2137c5719395357fbc4fb27c88cd"
+  },
+  "commands": [
+    "python3 scripts/run_fixture_pipeline.py --work-dir <directory-a> --clean",
+    "python3 scripts/run_fixture_pipeline.py --work-dir <directory-b> --clean",
+    "compare logical digests, tar SHA-256, release SHA-256, and scan written receipts for each work-directory string"
+  ]
+}

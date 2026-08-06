@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sisodias/siso-book-library/manifests/source-manifest.schema.json",
+  "title": "SISO Book Library build manifest",
+  "type": "object",
+  "required": [
+    "manifest_version",
+    "build_id",
+    "source",
+    "loader_version",
+    "schema_version",
+    "logical_digest",
+    "row_counts",
+    "binary_reproducibility"
+  ],
+  "properties": {
+    "manifest_version": {"const": "book-library-build-1"},
+    "build_id": {"type": "string", "minLength": 1},
+    "source": {
+      "type": "object",
+      "required": [
+        "source_id",
+        "snapshot_id",
+        "uri",
+        "sha256",
+        "retrieved_at",
+        "observed_at",
+        "terms_revision",
+        "rights_state",
+        "rights_basis",
+        "acquisition_method"
+      ],
+      "properties": {
+        "source_id": {"type": "string", "minLength": 1},
+        "snapshot_id": {"type": "string", "minLength": 1},
+        "uri": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "retrieved_at": {"type": "string", "minLength": 1},
+        "observed_at": {"type": "string", "minLength": 1},
+        "terms_revision": {"type": "string", "minLength": 1},
+        "rights_state": {
+          "enum": [
+            "public_metadata",
+            "open_data",
+            "restricted",
+            "discovery_only",
+            "pending"
+          ]
+        },
+        "rights_basis": {"type": "string", "minLength": 1},
+        "acquisition_method": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    },
+    "loader_version": {"type": "string", "minLength": 1},
+    "schema_version": {"type": "string", "minLength": 1},
+    "logical_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "row_counts": {
+      "type": "object",
+      "additionalProperties": {"type": "integer", "minimum": 0}
+    },
+    "binary_reproducibility": {"type": "string", "minLength": 1},
+    "database": {"type": "string"}
+  },
+  "additionalProperties": true
+}

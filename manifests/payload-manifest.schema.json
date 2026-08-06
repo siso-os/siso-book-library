@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sisodias/siso-book-library/manifests/payload-manifest.schema.json",
+  "title": "SISO Book Library payload pack manifest",
+  "type": "object",
+  "required": [
+    "manifest_version",
+    "container",
+    "format",
+    "source",
+    "determinism",
+    "loader_version",
+    "logical_digest",
+    "row_counts",
+    "tar_bytes",
+    "tar_sha256",
+    "members"
+  ],
+  "properties": {
+    "manifest_version": {"const": "book-payload-pack-3"},
+    "container": {"type": "string", "minLength": 1},
+    "format": {"const": "uncompressed_tar_of_individually_gzipped_members"},
+    "source": {
+      "type": "object",
+      "required": [
+        "source_id",
+        "snapshot_id",
+        "retrieved_at",
+        "terms_revision",
+        "rights_state",
+        "rights_basis",
+        "logical_input_sha256"
+      ]
+    },
+    "determinism": {"type": "object"},
+    "loader_version": {"type": "string", "minLength": 1},
+    "logical_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "row_counts": {
+      "type": "object",
+      "required": ["members"],
+      "properties": {"members": {"type": "integer", "minimum": 1}}
+    },
+    "tar_bytes": {"type": "integer", "minimum": 1},
+    "tar_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "members": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "gid",
+          "member",
+          "uncompressed_bytes",
+          "uncompressed_sha256",
+          "payload_bytes",
+          "payload_sha256",
+          "encoding"
+        ],
+        "properties": {
+          "gid": {"type": "integer", "minimum": 1},
+          "member": {"type": "string"},
+          "uncompressed_bytes": {"type": "integer", "minimum": 0},
+          "uncompressed_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "payload_bytes": {"type": "integer", "minimum": 1},
+          "payload_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "encoding": {"const": "gzip"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": true
+}

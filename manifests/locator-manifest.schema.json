@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sisodias/siso-book-library/manifests/locator-manifest.schema.json",
+  "title": "SISO Book Library payload locator manifest",
+  "type": "object",
+  "required": [
+    "manifest_version",
+    "container",
+    "tar_sha256",
+    "tar_bytes",
+    "members",
+    "logical_digest",
+    "row_counts",
+    "routes",
+    "loader_version",
+    "schema_version"
+  ],
+  "properties": {
+    "manifest_version": {"const": "book-library-locator-1"},
+    "container": {"type": "string", "minLength": 1},
+    "tar_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "tar_bytes": {"type": "integer", "minimum": 1},
+    "members": {"type": "integer", "minimum": 1},
+    "logical_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "row_counts": {"type": "object"},
+    "routes": {
+      "type": "array",
+      "items": {"enum": ["local", "release"]},
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "loader_version": {"type": "string", "minLength": 1},
+    "schema_version": {"const": "payload-locator-2"}
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,143 @@
+{
+  "clean_builds": {
+    "different_retrieval_timestamps": true,
+    "logical_digest": "abc7e01182af081428fe99c63c259e13b3124cf0b648454ffd8ef541f94743a1",
+    "row_counts": {
+      "book": 4,
+      "book_class": 6,
+      "book_field": 36,
+      "book_shelf": 4,
+      "book_subject": 6,
+      "subject_facet": 6
+    },
+    "source_sha256": "83825a3f3a692a34b55610cac29be0eba59c9bf6472ec85e4da11e75c42e739f"
+  },
+  "commands": [
+    "python3 -m unittest discover -v",
+    "python3 scripts/run_fixture_pipeline.py --work-dir <dir> --clean"
+  ],
+  "contributors": {
+    "logical_digest": "ad9c2400d419c754bddde03f3099d2cd5715400a6d471f48e669ef8772d5c863",
+    "repeated_exact_label": {
+      "comparison_keys": 1,
+      "distinct_observations": 2,
+      "occurrences": 2
+    },
+    "roles": [
+      "author",
+      "editor",
+      "author",
+      "translator",
+      "editor",
+      "author"
+    ],
+    "row_counts": {
+      "contribution": 6,
+      "source_contributor": 6
+    },
+    "unicode_labels": 1,
+    "unresolved_entity_kind_rows": 6
+  },
+  "extraction_queue": {
+    "distinct_works": 4,
+    "items": [
+      {
+        "gid": 1,
+        "priority": 10,
+        "reasons": [
+          "biography",
+          "core_sections",
+          "essays_letters_speeches",
+          "hold_revisit"
+        ],
+        "tier": "tier1"
+      },
+      {
+        "gid": 2,
+        "priority": 10,
+        "reasons": [
+          "classical_PA",
+          "mythology",
+          "hold_revisit"
+        ],
+        "tier": "tier1"
+      },
+      {
+        "gid": 4,
+        "priority": 30,
+        "reasons": [
+          "store_only"
+        ],
+        "tier": "tier3"
+      },
+      {
+        "gid": 5,
+        "priority": 10,
+        "reasons": [
+          "core_sections",
+          "essays_letters_speeches"
+        ],
+        "tier": "tier1"
+      }
+    ],
+    "rows": 4
+  },
+  "generated_assets_are_fixtures_only": true,
+  "observation_export": {
+    "canonical_ids_assigned": false,
+    "contributor_observations": 6,
+    "envelope_version": "pg-observation-0.1",
+    "loader_version": "book-library-integrity-1.0",
+    "logical_digest": "1eb9c3a11a341f036433d6549b2a3e442892545146bb01b1d37ac62e10feef18",
+    "manifest_version": "book-library-observation-export-1",
+    "name_only_merges": false,
+    "records": 10,
+    "row_counts": {
+      "contributor_observations": 6,
+      "records": 10,
+      "works": 4
+    },
+    "sha256": "1eb9c3a11a341f036433d6549b2a3e442892545146bb01b1d37ac62e10feef18",
+    "source": {
+      "observed_at": "2026-08-06T00:00:00Z",
+      "retrieved_at": "2026-08-06T00:00:00Z",
+      "rights_state": "public_metadata",
+      "snapshot_id": "fixture-v2",
+      "source_id": "project_gutenberg",
+      "terms_revision": "fixture-terms-v1"
+    },
+    "works": 4
+  },
+  "payload": {
+    "logical_digest": "30a9d65f68ebe8f8be4b23500b51da64d481a8dd5b9b34c04ef69a66fc1a9bc4",
+    "row_counts": {
+      "members": 4
+    },
+    "second_tar_sha256": "3d97cf6a56c63fb782010a5dfcc6cfd40f4a02a1c7b971ce632036b61ad0a2d2",
+    "tar_sha256": "3d97cf6a56c63fb782010a5dfcc6cfd40f4a02a1c7b971ce632036b61ad0a2d2",
+    "verification": {
+      "checked": 4,
+      "container": "fixture-books",
+      "errors": [],
+      "ok": true,
+      "tar_sha256": "3d97cf6a56c63fb782010a5dfcc6cfd40f4a02a1c7b971ce632036b61ad0a2d2"
+    }
+  },
+  "release_manifest": {
+    "manifest_sha256": "11e482cd8fbc5bf0991db81b6ac4e285a19a2137c5719395357fbc4fb27c88cd",
+    "publication_state": "manifest_only_no_assets_uploaded"
+  },
+  "report_version": "book-library-fixture-integrity-1",
+  "source_replacement": {
+    "gids": [
+      1,
+      2,
+      4,
+      5
+    ],
+    "stale_classes": 0,
+    "stale_shelves": 0,
+    "stale_subjects": 0
+  },
+  "status": "pass"
+}

@@ -1,0 +1,18 @@
+test_extraction_queue_one_row_at_highest_priority_with_all_reasons (tests.test_integrity.BookIndexIntegrityTests.test_extraction_queue_one_row_at_highest_priority_with_all_reasons) ... ok
+test_locc_letter_plus_digit_and_letter_subclasses (tests.test_integrity.BookIndexIntegrityTests.test_locc_letter_plus_digit_and_letter_subclasses) ... ok
+test_source_replacement_and_timestamp_independent_logical_digest (tests.test_integrity.BookIndexIntegrityTests.test_source_replacement_and_timestamp_independent_logical_digest) ... ok
+test_specific_pz_tier_is_not_promoted_by_broad_language_section (tests.test_integrity.BookIndexIntegrityTests.test_specific_pz_tier_is_not_promoted_by_broad_language_section) ... ok
+test_envelope_validator_rejects_canonical_and_name_identifier (tests.test_integrity.ContributorAndEnvelopeTests.test_envelope_validator_rejects_canonical_and_name_identifier) ... ok
+test_pg_observation_export_has_no_canonical_identity (tests.test_integrity.ContributorAndEnvelopeTests.test_pg_observation_export_has_no_canonical_identity) ... ok
+test_repeated_exact_labels_are_separate_occurrences (tests.test_integrity.ContributorAndEnvelopeTests.test_repeated_exact_labels_are_separate_occurrences) ... ok
+test_roles_unicode_aliases_and_source_replacement_without_name_merge (tests.test_integrity.ContributorAndEnvelopeTests.test_roles_unicode_aliases_and_source_replacement_without_name_merge) ... ok
+test_deterministic_pack_offsets_checksums_and_locator_replacement (tests.test_integrity.PayloadAndReleaseTests.test_deterministic_pack_offsets_checksums_and_locator_replacement) ... ok
+test_legacy_locator_schema_requires_explicit_regeneration (tests.test_integrity.PayloadAndReleaseTests.test_legacy_locator_schema_requires_explicit_regeneration) ... ok
+test_release_manifest_records_component_receipts (tests.test_integrity.PayloadAndReleaseTests.test_release_manifest_records_component_receipts) ... ok
+test_release_receipt_is_independent_of_local_paths_and_formatting (tests.test_integrity.PayloadAndReleaseTests.test_release_receipt_is_independent_of_local_paths_and_formatting) ... ok
+test_tracked_json_schemas_parse_and_have_unique_ids (tests.test_manifest_contracts.TrackedManifestContractTests.test_tracked_json_schemas_parse_and_have_unique_ids) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.770s
+
+OK
