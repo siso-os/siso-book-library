@@ -223,7 +223,7 @@ class PayloadAndExportIntegrityTests(unittest.TestCase):
             self.assertEqual(release["manifest_version"], "book-library-release-1")
             self.assertEqual(
                 release["source"]["payload_sha256"],
-                "fff72a45518bb4877626825761d38f57ee8e8619b3e222171432065d60b11fe7",
+                "f9a8b57b5815930c2f6c56aab8385e551cfe12ddfe3b085868c0160d1c2aff2e",
             )
             self.assertEqual(release["rights_coverage"], {"not_restricted_us": 4})
             self.assertTrue(

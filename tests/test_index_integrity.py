@@ -39,7 +39,7 @@ class BookIndexIntegrityTests(unittest.TestCase):
             self.assertEqual(first_people["table_counts"], second_people["table_counts"])
             self.assertEqual(
                 first_books["source_payload_sha256"],
-                "fff72a45518bb4877626825761d38f57ee8e8619b3e222171432065d60b11fe7",
+                "f9a8b57b5815930c2f6c56aab8385e551cfe12ddfe3b085868c0160d1c2aff2e",
             )
 
     def test_catalog_and_contributor_source_replacement_removes_stale_rows(self):

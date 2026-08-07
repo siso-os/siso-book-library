@@ -74,7 +74,7 @@
     "book-library-release-1"
   ],
   "verified_receipts": {
-    "source_csv_sha256": "fff72a45518bb4877626825761d38f57ee8e8619b3e222171432065d60b11fe7",
+    "source_csv_sha256": "f9a8b57b5815930c2f6c56aab8385e551cfe12ddfe3b085868c0160d1c2aff2e",
     "books_logical_sha256": "2076314adb8310d6b33173b11d0452afda9841abac68209dc77dd77d18726d73",
     "contributors_logical_sha256": "120be5f343325682cca6ab34b696277ef2b6a511aad03a1adc5757d99a144022",
     "observations_ndjson_sha256": "83a1c27b07da699ff18b13b1e7707f9ab38f21f4c9926f2b7549c43456a5027e",

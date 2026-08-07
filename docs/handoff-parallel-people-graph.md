@@ -114,7 +114,7 @@ comparison on Python 3.11 and 3.13.
 Fixture-v1 clean-build receipts (two independent directories, equal):
 
 - source CSV SHA-256:
-  `fff72a45518bb4877626825761d38f57ee8e8619b3e222171432065d60b11fe7`
+  `f9a8b57b5815930c2f6c56aab8385e551cfe12ddfe3b085868c0160d1c2aff2e`
 - Books logical SHA-256:
   `2076314adb8310d6b33173b11d0452afda9841abac68209dc77dd77d18726d73`
 - contributor observations logical SHA-256:

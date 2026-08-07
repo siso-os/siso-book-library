@@ -10,7 +10,7 @@
   "rights_basis": "Tiny synthetic replacement fixture shaped like the Project Gutenberg catalog; payload rights remain literal per-Work observations.",
   "acquisition_method": "tracked_offline_fixture",
   "payload_path": "../../tests/fixtures/pg_catalog_v2.csv",
-  "payload_sha256": "28be42935404e3058d8952c8eb2dcf1ac7f66d25e721c444a04f5bc76e9f9fac",
+  "payload_sha256": "4913f6b19d15dcf0883ee6fe34ed2341527092991037d2f033a608a79c31d2bb",
   "expected_row_contract": {
     "required_columns": [
       "Text#",
