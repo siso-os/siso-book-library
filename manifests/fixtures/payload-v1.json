@@ -1,0 +1,30 @@
+{
+  "manifest_version": "book-payload-input-1",
+  "source_id": "project_gutenberg_catalog",
+  "snapshot_id": "fixture-2026-08-06-v1",
+  "retrieved_at": "2026-08-06T00:05:00Z",
+  "rights_basis": "Synthetic public-safe text fixtures; not production Project Gutenberg payloads.",
+  "books": [
+    {
+      "gid": 1001,
+      "path": "../../tests/fixtures/texts_v1/1001.txt",
+      "source_uri": "fixture://gutenberg/1001.txt",
+      "rights_state": "not_restricted_us",
+      "sha256": "6401f723c77d346f6af18fe5cb173169f66d035820ce558f337beededd39afc5"
+    },
+    {
+      "gid": 1002,
+      "path": "../../tests/fixtures/texts_v1/1002.txt",
+      "source_uri": "fixture://gutenberg/1002.txt",
+      "rights_state": "not_restricted_us",
+      "sha256": "018cccbf3e8bd4040fedf6f2c3aa582dde29c83a0f0c5db1d05a2414ba7703b7"
+    },
+    {
+      "gid": 1003,
+      "path": "../../tests/fixtures/texts_v1/1003.txt",
+      "source_uri": "fixture://gutenberg/1003.txt",
+      "rights_state": "not_restricted_us",
+      "sha256": "a1b4781c0f3b0c0c610b67ea2bc7f3a6d4fec4cc8ce5dffdfe5d3812cb9d0ae0"
+    }
+  ]
+}

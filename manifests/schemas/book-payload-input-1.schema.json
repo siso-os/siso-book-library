@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sisodias/siso-book-library/manifests/schemas/book-payload-input-1.schema.json",
+  "title": "Book Library payload input manifest v1",
+  "type": "object",
+  "required": ["manifest_version", "source_id", "snapshot_id", "retrieved_at", "rights_basis", "books"],
+  "properties": {
+    "manifest_version": {"const": "book-payload-input-1"},
+    "source_id": {"type": "string", "minLength": 1},
+    "snapshot_id": {"type": "string", "minLength": 1},
+    "retrieved_at": {"type": "string", "pattern": "Z$"},
+    "rights_basis": {"type": "string", "minLength": 1},
+    "books": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["gid", "path", "source_uri", "rights_state", "sha256"],
+        "properties": {
+          "gid": {"type": "integer", "minimum": 1},
+          "path": {"type": "string", "minLength": 1},
+          "source_uri": {"type": "string", "minLength": 1},
+          "rights_state": {"type": "string", "minLength": 1},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    }
+  }
+}
