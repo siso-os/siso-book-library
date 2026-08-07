@@ -184,8 +184,14 @@ def check_section_bookcase_policy() -> dict[str, Any]:
 def check_queue_deduplication() -> dict[str, Any]:
     con = build_tier_fixture()
     try:
+        # v_extraction_queue no longer exposes a bare `reason` column. The fixed
+        # view returns exactly one row per Work at its best tier and aggregates
+        # the reasons into reason_list/reason_count, which is what closed
+        # BL-P1-007. Probe the aggregated column so this check tests the current
+        # schema; the reproduction test below (more rows than distinct gids) is
+        # unchanged and still detects the original duplication if it returns.
         rows = con.execute(
-            "SELECT tier, reason, gid FROM v_extraction_queue WHERE gid=2 ORDER BY reason"
+            "SELECT tier, reason_list, gid FROM v_extraction_queue WHERE gid=2 ORDER BY reason_list"
         ).fetchall()
         distinct_gid = con.execute(
             "SELECT COUNT(DISTINCT gid) FROM v_extraction_queue WHERE gid=2"
