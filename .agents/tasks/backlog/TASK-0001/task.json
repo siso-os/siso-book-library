@@ -1,0 +1,31 @@
+{
+  "id": "TASK-0001",
+  "title": "Merge the -3 integrity branch and close -2 and -1",
+  "status": "backlog",
+  "priority": "high",
+  "domain": "lifecycle",
+  "category": "infrastructure",
+  "created_at": "2026-08-07T00:00:00Z",
+  "created_by": "GLS-CONSOLIDATION",
+  "evidence": "PRs #5 (-3), #4 (-2), #3 audit open; #1 already closed before this consolidation. -3 shows 5,109 insertions against 4,134 deletions relative to -2.",
+  "verified": false,
+  "target_agent": "",
+  "dependencies": [],
+  "spec": {
+    "description": "The three books/integrity-export branches are SUCCESSIVE REFINEMENTS of one hard acceptance bar, not duplicates or mess. -3 restructures fixtures into texts_v1/texts_v2 and splits the test suite. Merge -3; close -2 and -1 as superseded.",
+    "context": "Prompt 7's acceptance demanded TWO clean fixture builds with EQUAL LOGICAL DIGESTS plus stale-edge, queue-dedup, locator-checksum, role-preservation and envelope-export tests. Three attempts at that bar is persistence, not duplication. -3 also retires direct graph mutation: --apply fails closed. Record in the close comment that -2 and -1 are superseded rather than wrong, so the attempt history is not read later as failure.",
+    "acceptance_criteria": [
+      "-3 merged after running its own test suite",
+      "-2 and -1 closed with a comment naming -3 as the superseding branch",
+      "Two clean fixture builds are confirmed to produce equal logical digests"
+    ]
+  },
+  "execution_log": [
+    {
+      "timestamp": "2026-08-07T00:00:00Z",
+      "action": "seeded",
+      "by": "GLS-CONSOLIDATION",
+      "notes": "Seeded from the 2026-08-07 estate consolidation. Durable rationale in .agents/tasks/consolidation-source/."
+    }
+  ]
+}
